@@ -48,7 +48,8 @@ void fetchWeather()
             int weatherId = doc["current"]["weather"][0]["id"];
 
             weatherTempStr = String(temp, 1) + "°C";
-            currentWeatherIcon = mapWeatherIdToIcon(weatherId); /// currentWeatherIcon = mapWeatherIdToIcon(weatherId, timeinfo);
+            // currentWeatherIcon = mapWeatherIdToIcon(weatherId); /// 
+            currentWeatherIcon = mapWeatherIdToIcon(weatherId, timeinfo);
 
             // Waarschuwing ophalen
             if (doc["alerts"].is<JsonArray>()) {
