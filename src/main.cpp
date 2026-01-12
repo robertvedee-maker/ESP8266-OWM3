@@ -24,11 +24,8 @@ String sunsetStr = "--:--";
 String currentTimeStr = "--:--:--";
 String currentDateStr = "--. --:---:----";
 
-#define SUN 0
-#define SUN_CLOUD 1
-#define CLOUD 2
-#define RAIN 3
-#define THUNDER 4
+// De "belofte" aan de compiler dat deze functie verderop staat:
+void drawDisplay(struct tm* timeInfo, time_t now);
 
 unsigned long lastBrightnessCheck = 0;
 const unsigned long brightnessInterval = 60000; // 1 minuut
