@@ -40,6 +40,8 @@ void setup(void)
 
     // 2. Netwerk (nu lekker kort!)
     setupWiFi(SECRET_SSID, SECRET_PASS);
+    
+    fetchWeather(); // Haal direct het eerste weerbericht op
 
     if (WiFi.status() == WL_CONNECTED) {
         toonNetwerkInfo(); // Deze functie bevat de 'rtc_info->reason' check
