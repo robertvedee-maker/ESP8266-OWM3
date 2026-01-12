@@ -40,7 +40,7 @@ void setup(void)
 
     // 2. Netwerk (nu lekker kort!)
     setupWiFi(SECRET_SSID, SECRET_PASS);
-    
+
     fetchWeather(); // Haal direct het eerste weerbericht op
 
     if (WiFi.status() == WL_CONNECTED) {
@@ -122,13 +122,14 @@ void drawDisplay(struct tm* timeInfo, time_t now)
     long ntpIcon = timeValid ? 57367 : 57368;
     long rssiIcon = map(WiFi.RSSI(), -90, -30, 57949, 57953);
 
-    u8g2.setFont(u8g2_font_waffle_t_all);
-    u8g2.drawGlyph(0, 8, ntpIcon);
-    u8g2.drawGlyph(12, 8, rssiIcon);
-    u8g2.drawGlyph(24, 8, currentWeatherIcon); // Komt uit weather.h
+    u8g2.setFont(u8g2_font_waffle_t_all); // Zorg dat dit font actief is
+    u8g2.drawGlyph(0, 10, ntpIcon); // Y iets verlaagd naar 10 voor betere weergave
+    u8g2.drawGlyph(14, 10, rssiIcon); // X iets meer ruimte gegeven
+    u8g2.drawGlyph(28, 10, currentWeatherIcon); // HET WEER ICOON
 
-    u8g2.setFont(u8g2_font_spleen6x12_mr);
-    u8g2.drawStr(ALIGN_RIGHT(currentDateStr.c_str()), 8, currentDateStr.c_str());
+    // --- Datum rechtsboven ---
+    u8g2.setFont(u8g2_font_spleen6x12_mr); // Switch terug naar tekst-font
+    u8g2.drawStr(ALIGN_RIGHT(currentDateStr.c_str()), 10, currentDateStr.c_str());
 
     // --- 2. Midden: De Grote Tijd ---
     u8g2.setFont(u8g2_font_spleen16x32_mr);
