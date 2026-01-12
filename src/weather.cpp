@@ -3,6 +3,7 @@
  */
 
 #include "weather.h"
+#include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiClient.h>
 #include <ArduinoJson.h>
@@ -20,7 +21,7 @@ void fetchWeather() {
 
     // URL voor One Call 3.0 API
     String url = "api.openweathermap.org" + String(SECRET_LAT) + 
-                 "&lon=" + String(SECRET_LON) + "&exclude=minutely,hourly,daily,alerts&units=metric&appid=" + String(SECRET_OWM_KEY);
+                 "&lon=" + String(SECRET_LON) + "&exclude=minutely,hourly,daily,alerts&units=metric&appid=" + String(SECRET_OMW3);
 
     if (http.begin(client, url)) {
         int httpCode = http.GET();

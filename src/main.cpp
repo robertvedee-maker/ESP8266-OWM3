@@ -92,6 +92,7 @@ void loop(void)
 
         time_t now = time(nullptr);
         struct tm* timeInfo = localtime(&now);
+        drawDisplay(timeInfo, now);
 
         if (now > 100000) { // Check of we geldige NTP tijd hebben
             updateDateTimeStrings(timeInfo); // Geef timeInfo door!
@@ -104,28 +105,61 @@ void loop(void)
             manageBrightness();
         }
 
-        // 3. Teken het scherm (alles gebeurt nu in één keer)
-        u8g2.clearBuffer();
-        u8g2.enableUTF8Print();
+        // // 3. Teken het scherm (alles gebeurt nu in één keer)
+        // u8g2.clearBuffer();
+        // u8g2.enableUTF8Print();
 
-        // Iconen
-        long ntpIcon = (now > 1735689600) ? 57367 : 57368;
-        long rssiIcon = map(WiFi.RSSI(), -90, -30, 57949, 57953);
-        u8g2.setFont(u8g2_font_waffle_t_all);
-        u8g2.drawGlyph(0, 8, ntpIcon);
-        u8g2.drawGlyph(12, 8, rssiIcon);
+        // // Iconen
+        // long ntpIcon = (now > 1735689600) ? 57367 : 57368;
+        // long rssiIcon = map(WiFi.RSSI(), -90, -30, 57949, 57953);
+        // u8g2.setFont(u8g2_font_waffle_t_all);
+        // u8g2.drawGlyph(0, 8, ntpIcon);
+        // u8g2.drawGlyph(12, 8, rssiIcon);
 
-        // Tijd (Rechtsboven)
-        u8g2.setFont(u8g2_font_spleen6x12_mr);
-        u8g2.drawStr(ALIGN_RIGHT(currentTimeStr.c_str()), 8, currentTimeStr.c_str());
+        // // Tijd (Rechtsboven)
+        // u8g2.setFont(u8g2_font_spleen6x12_mr);
+        // u8g2.drawStr(ALIGN_RIGHT(currentTimeStr.c_str()), 8, currentTimeStr.c_str());
 
-        // Weather
-        draw("What a beautiful day!", SUN, 27);
-        draw("The sun's come out!", SUN_CLOUD, 19);
-        draw("It's raining cats and dogs.", RAIN, 8);
-        draw("That sounds like thunder.", THUNDER, 12);
-        draw("It's stopped raining", CLOUD, 15);
+        // // Weather
+        // draw("What a beautiful day!", SUN, 27);
+        // draw("The sun's come out!", SUN_CLOUD, 19);
+        // draw("It's raining cats and dogs.", RAIN, 8);
+        // draw("That sounds like thunder.", THUNDER, 12);
+        // draw("It's stopped raining", CLOUD, 15);
 
-        u8g2.sendBuffer();
+        // u8g2.sendBuffer();
     }
+}
+
+void drawDisplay(struct tm* timeInfo, time_t now) {
+    u8g2.clearBuffer();
+    u8g2.enableUTF8Print();
+
+    // --- 1. Bovenste balk: Iconen & Datum ---
+    bool timeValid = (now > 1735689600); // Check voor 2026
+    long ntpIcon = timeValid ? 57367 : 57368;
+    long rssiIcon = map(WiFi.RSSI(), -90, -30, 57949, 57953);
+
+    u8g2.setFont(u8g2_font_waffle_t_all);
+    u8g2.drawGlyph(0, 8, ntpIcon);
+    u8g2.drawGlyph(12, 8, rssiIcon);
+    u8g2.drawGlyph(24, 8, currentWeatherIcon); // HET WEER ICOON UIT OWM3!
+
+    u8g2.setFont(u8g2_font_spleen6x12_mr);
+    u8g2.drawStr(ALIGN_RIGHT(currentDateStr.c_str()), 8, currentDateStr.c_str());
+
+    // --- 2. Midden: De Grote Tijd ---
+    u8g2.setFont(u8g2_font_spleen16x32_mr);
+    u8g2.drawStr(ALIGN_CENTER(currentTimeStr.c_str()), ALIGN_V_CENTER + 5, currentTimeStr.c_str());
+
+    // --- 3. Onderste balk: Zon-tijden & Temperatuur ---
+    u8g2.setFont(u8g2_font_spleen6x12_mr);
+    u8g2.drawStr(0, ALIGN_BOTTOM, sunriseStr.c_str());
+    
+    // We plaatsen de temperatuur in het midden onderaan
+    u8g2.drawStr(ALIGN_CENTER(weatherTempStr.c_str()), ALIGN_BOTTOM, weatherTempStr.c_str());
+    
+    u8g2.drawStr(ALIGN_RIGHT(sunsetStr.c_str()), ALIGN_BOTTOM, sunsetStr.c_str());
+
+    u8g2.sendBuffer();
 }
