@@ -14,6 +14,6 @@ extern String weatherAlertStr; // Nieuwe variabele voor de waarschuwing
 
 // Functies
 void fetchWeather();
-long mapWeatherIdToIcon(int id);
+long mapWeatherIdToIcon(int id, struct tm* timeinfo);
 
 #endif

@@ -46,6 +46,9 @@ void fetchWeather()
 
             float temp = doc["current"]["temp"];
             int weatherId = doc["current"]["weather"][0]["id"];
+            
+            time_t now = time(nullptr);
+            struct tm* timeinfo = localtime(&now);
 
             weatherTempStr = String(temp, 1) + "°C";
             // currentWeatherIcon = mapWeatherIdToIcon(weatherId); /// 

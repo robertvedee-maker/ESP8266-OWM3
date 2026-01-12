@@ -32,6 +32,9 @@ extern U8G2_SH1107_SEEED_128X128_F_HW_I2C u8g2; // Pas het type aan naar jouw sp
 extern unsigned long lastBrightnessCheck;
 extern const unsigned long brightnessInterval;
 
+extern double sunrise_local;
+extern double sunset_local;
+
 extern String sunriseStr;
 extern String sunsetStr;
 extern String currentTimeStr;

@@ -10,6 +10,9 @@ extern U8G2_SH1107_SEEED_128X128_F_HW_I2C u8g2; // Pas het type aan naar jouw sp
 
 // const char* TZ_INFO = SECRET_TZ_INFO;
 // const char* ntpServer = SECRET_NTP_SERVER;
+double sunrise_local = 0;
+double sunset_local = 0;
+
 
 double latitude = SECRET_LAT;
 double longitude = SECRET_LON;
