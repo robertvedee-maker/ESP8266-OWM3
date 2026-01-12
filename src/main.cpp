@@ -33,8 +33,8 @@ String sunsetStr = "--:--";
 String currentTimeStr = "--:--:--";
 String currentDateStr = "--. --:---:----";
 
-#define SUN	0
-#define SUN_CLOUD  1
+#define SUN 0
+#define SUN_CLOUD 1
 #define CLOUD 2
 #define RAIN 3
 #define THUNDER 4
@@ -95,6 +95,7 @@ void loop(void)
 
         if (now > 100000) { // Check of we geldige NTP tijd hebben
             updateDateTimeStrings(timeInfo); // Geef timeInfo door!
+            fetchWeather();
         }
 
         // 2. Elke minuut de zon/helderheid checken

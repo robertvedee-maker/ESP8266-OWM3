@@ -3,118 +3,51 @@
  */
 
 #include "weather.h"
-#include "helpers.h"
+#include <ESP8266HTTPClient.h>
+#include <WiFiClient.h>
+#include <ArduinoJson.h>
+#include "secret.h"
 
-// Het u8g2 object wordt in main.cpp gedefinieerd, we vertellen de compiler dat het bestaat
-extern U8G2_SH1107_SEEED_128X128_F_HW_I2C u8g2; // Pas het type aan naar jouw specifieke display type!
+// Definities van de variabelen
+String weatherTempStr = "--.-°C";
+long currentWeatherIcon = 57921; // Standaard wolkje
 
-#define SUN 0
-#define SUN_CLOUD 1
-#define CLOUD 2
-#define RAIN 3
-#define THUNDER 4
+void fetchWeather() {
+    if (WiFi.status() != WL_CONNECTED) return;
 
-float TOP_SPACE = 20;
+    WiFiClient client;
+    HTTPClient http;
 
-void drawWeatherSymbol(u8g2_uint_t x, u8g2_uint_t y, uint8_t symbol)
-{
-    // fonts used:
-    // u8g2_font_open_iconic_embedded_6x_t
-    // u8g2_font_open_iconic_weather_6x_t
-    // encoding values, see: https://github.com/olikraus/u8g2/wiki/fntgrpiconic
+    // URL voor One Call 3.0 API
+    String url = "api.openweathermap.org" + String(SECRET_LAT) + 
+                 "&lon=" + String(SECRET_LON) + "&exclude=minutely,hourly,daily,alerts&units=metric&appid=" + String(SECRET_OWM_KEY);
 
-    switch (symbol) {
-    case SUN:
-        u8g2.setFont(u8g2_font_open_iconic_weather_6x_t);
-        u8g2.drawGlyph(x, y, 69);
-        break;
-    case SUN_CLOUD:
-        u8g2.setFont(u8g2_font_open_iconic_weather_6x_t);
-        u8g2.drawGlyph(x, y, 65);
-        break;
-    case CLOUD:
-        u8g2.setFont(u8g2_font_open_iconic_weather_6x_t);
-        u8g2.drawGlyph(x, y, 64);
-        break;
-    case RAIN:
-        u8g2.setFont(u8g2_font_open_iconic_weather_6x_t);
-        u8g2.drawGlyph(x, y, 67);
-        break;
-    case THUNDER:
-        u8g2.setFont(u8g2_font_open_iconic_embedded_6x_t);
-        u8g2.drawGlyph(x, y, 67);
-        break;
+    if (http.begin(client, url)) {
+        int httpCode = http.GET();
+        if (httpCode == HTTP_CODE_OK) {
+            // Filter om RAM te besparen op de ESP-01S
+            JsonDocument filter;
+            filter["current"]["temp"] = true;
+            filter["current"]["weather"][0]["id"] = true;
+
+            JsonDocument doc;
+            deserializeJson(doc, http.getStream(), DeserializationOption::Filter(filter));
+
+            float temp = doc["current"]["temp"];
+            int weatherId = doc["current"]["weather"][0]["id"];
+
+            weatherTempStr = String(temp, 1) + "°C";
+            currentWeatherIcon = mapWeatherIdToIcon(weatherId);
+        }
+        http.end();
     }
 }
 
-void drawWeather(uint8_t symbol, int degree)
-{
-    drawWeatherSymbol(0, 48 + TOP_SPACE, symbol);
-    u8g2.setFont(u8g2_font_logisoso32_tf);
-    u8g2.setCursor(48 + 3 + TOP_SPACE, 42);
-    u8g2.print(degree);
-    u8g2.print("°C"); // requires enableUTF8Print()
-}
-
-/*
-  Draw a string with specified pixel offset.
-  The offset can be negative.
-  Limitation: The monochrome font with 8 pixel per glyph
-*/
-void drawScrollString(int16_t offset, const char* s)
-{
-    static char buf[36]; // should for screen with up to 256 pixel width
-    size_t len;
-    size_t char_offset = 0;
-    u8g2_uint_t dx = 0;
-    size_t visible = 0;
-
-    u8g2.setDrawColor(0); // clear the scrolling area
-    u8g2.drawBox(0, 49 + TOP_SPACE, u8g2.getDisplayWidth() - 1, u8g2.getDisplayHeight() - 1);
-    u8g2.setDrawColor(1); // set the color for the text
-
-    len = strlen(s);
-    if (offset < 0) {
-        char_offset = (-offset) / 8;
-        dx = offset + char_offset * 8;
-        if (char_offset >= u8g2.getDisplayWidth() / 8)
-            return;
-        visible = u8g2.getDisplayWidth() / 8 - char_offset + 1;
-        strncpy(buf, s, visible);
-        buf[visible] = '\0';
-        u8g2.setFont(u8g2_font_8x13_mf);
-        u8g2.drawStr(char_offset * 8 - dx, 62, buf);
-    } else {
-        char_offset = offset / 8;
-        if (char_offset >= len)
-            return; // nothing visible
-        dx = offset - char_offset * 8;
-        visible = len - char_offset;
-        if (visible > u8g2.getDisplayWidth() / 8 + 1)
-            visible = u8g2.getDisplayWidth() / 8 + 1;
-        strncpy(buf, s + char_offset, visible);
-        buf[visible] = '\0';
-        u8g2.setFont(u8g2_font_8x13_mf);
-        u8g2.drawStr(-dx, 62, buf);
-    }
-}
-
-void draw(const char* s, uint8_t symbol, int degree)
-{
-    int16_t offset = -(int16_t)u8g2.getDisplayWidth();
-    int16_t len = strlen(s);
-
-    // u8g2.clearBuffer(); // clear the internal memory
-    drawWeather(symbol, degree); // draw the icon and degree only once
-    for (;;) // then do the scrolling
-    {
-
-        drawScrollString(offset, s); // no clearBuffer required, screen will be partially cleared here
-        u8g2.sendBuffer(); // transfer internal memory to the display
-
-        delay(20);
-        offset += 2;
-        if (offset > len * 8 + 1)
-            break;
-    }
+long mapWeatherIdToIcon(int id) {
+    if (id == 800) return 57914; // Helder
+    if (id >= 801 && id <= 804) return 57921; // Wolken
+    if (id >= 500 && id <= 531) return 57919; // Regen
+    if (id >= 200 && id <= 232) return 57920; // Onweer
+    if (id >= 600 && id <= 622) return 57918; // Sneeuw
+    return 57921; // Default
 }
