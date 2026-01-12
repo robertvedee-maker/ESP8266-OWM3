@@ -11,7 +11,8 @@
 
 // Definities van de variabelen
 String weatherTempStr = "--.-°C";
-long currentWeatherIcon = 57921; // Standaard wolkje
+long currentWeatherIcon = 104; // Standaard wolkje
+String weatherAlertStr = "Test Code Geel"; // Nieuwe variabele voor de waarschuwing (standaard leeg)
 
 void fetchWeather()
 {
@@ -23,7 +24,7 @@ void fetchWeather()
     HTTPClient http;
 
     // Gebruik HTTPS in de URL
-    String url = "https://api.openweathermap.org/data/3.0/onecall?lat=" + String(SECRET_LAT) + "&lon=" + String(SECRET_LON) + "&exclude=minutely,hourly,daily,alerts&units=metric&appid=" + String(SECRET_OMW3);
+    String url = "https://api.openweathermap.org/data/3.0/onecall?lat=" + String(SECRET_LAT) + "&lon=" + String(SECRET_LON) + "&exclude=" + String(SECRET_EXLUDE) + "&units=metric&appid=" + String(SECRET_OMW3);
 
     if (http.begin(client, url)) {
         int httpCode = http.GET();
@@ -34,6 +35,7 @@ void fetchWeather()
             JsonDocument filter;
             filter["current"]["temp"] = true;
             filter["current"]["weather"]["id"] = true;
+            filter["alerts"][0]["event"] = true; // Pak alleen de titel van de eerste waarschuwing
 
             JsonDocument doc;
             deserializeJson(doc, http.getStream(), DeserializationOption::Filter(filter));
@@ -43,6 +45,18 @@ void fetchWeather()
 
             weatherTempStr = String(temp, 1) + "°C";
             currentWeatherIcon = mapWeatherIdToIcon(weatherId);
+
+            // Waarschuwing ophalen
+            if (doc["alerts"].is<JsonArray>()) {
+                // Pak het eerste element [0] uit de lijst met waarschuwingen
+                const char* alertEvent = doc["alerts"][0]["event"];
+                if (alertEvent) {
+                    weatherAlertStr = String(alertEvent);
+                }
+            } else {
+                weatherAlertStr = "GEEN MELDINGEN"; // Geen waarschuwingen aanwezig
+            }
+
             Serial.println("Weer succesvol bijgewerkt!");
         }
         http.end();
@@ -63,14 +77,34 @@ void fetchWeather()
 long mapWeatherIdToIcon(int id)
 {
     if (id == 800)
-        return 57914; // Helder
-    if (id >= 801 && id <= 804)
-        return 57921; // Wolken
-    if (id >= 500 && id <= 531)
-        return 57919; // Regen
-    if (id >= 200 && id <= 232)
-        return 57920; // Onweer
+        return 73; // Helder
+    if (id >= 801 && id <= 802)
+        return 34; // Wolken weinig
+    if (id >= 803 && id <= 804)
+        return 33; // Wolken veel
+    if (id >= 701 && id <= 721)
+        return 60; // Mist Nevel Smog
+    if (id >= 731)
+        return 57; // Stof Zand
+    if (id >= 741 && id <= 762)
+        return 63; // Vulkanisch As Zand Dust
+    if (id == 781)
+        return 88; // Tornado
     if (id >= 600 && id <= 622)
-        return 57918; // Sneeuw
-    return 57921; // Default
+        return 54; // Sneeuw
+    if (id == 500)
+        return 45; // ligte regen
+    if (id == 501)
+        return 39; // matige regen
+    if (id >= 502 && id <= 504)
+        return 42; // zware regen
+    if (id == 511)
+        return 48; // IJzel
+    if (id >= 520 && id <= 531)
+        return 51; // Regen buien
+    if (id >= 300 && id <= 321)
+        return 36; // motregen
+    if (id >= 200 && id <= 232)
+        return 70; // Onweer
+    return 102; // Default
 }

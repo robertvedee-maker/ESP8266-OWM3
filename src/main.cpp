@@ -9,6 +9,7 @@
 #include "secret.h"
 
 #include "daynight.h"
+#include "font_climacons.h"
 #include "network_logic.h" // Volgorde is hier erg belangrijk. niet aanpassen!
 #include "weather.h"
 
@@ -125,22 +126,36 @@ void drawDisplay(struct tm* timeInfo, time_t now)
     u8g2.setFont(u8g2_font_waffle_t_all); // Zorg dat dit font actief is
     u8g2.drawGlyph(0, 10, ntpIcon); // Y iets verlaagd naar 10 voor betere weergave
     u8g2.drawGlyph(14, 10, rssiIcon); // X iets meer ruimte gegeven
-    u8g2.drawGlyph(28, 10, currentWeatherIcon); // HET WEER ICOON
 
     // --- Datum rechtsboven ---
     u8g2.setFont(u8g2_font_spleen6x12_mr); // Switch terug naar tekst-font
     u8g2.drawStr(ALIGN_RIGHT(currentDateStr.c_str()), 10, currentDateStr.c_str());
 
+    // We plaatsen de temperatuur in het midden onderaan
+    u8g2.setFont(u8g2_font_spleen16x32_mr);
+
+    u8g2.drawStr(50, 50, weatherTempStr.c_str());
+
+    // --- Huidige Weericoon linksboven ---
+    u8g2.setFont(font_climacons_36pt); // Weer-iconen font
+    u8g2.drawGlyph(1, 50, currentWeatherIcon); // HET WEER ICOON
+
     // --- 2. Midden: De Grote Tijd ---
     u8g2.setFont(u8g2_font_spleen16x32_mr);
-    u8g2.drawStr(ALIGN_CENTER(currentTimeStr.c_str()), ALIGN_V_CENTER + 5, currentTimeStr.c_str());
+    u8g2.drawStr(ALIGN_CENTER(currentTimeStr.c_str()), 100, currentTimeStr.c_str());
+
+    // --- Eventuele weerwaarschuwing ---
+    if (weatherAlertStr != "") {
+        u8g2.setFont(u8g2_font_spleen6x12_mr);
+        u8g2.drawBox(0, 102, 128, 13); // Een balkje onderaan
+        u8g2.setDrawColor(0); // Tekst in negatief (wit op zwart)
+        u8g2.drawStr(ALIGN_CENTER(weatherAlertStr.c_str()), 112, weatherAlertStr.c_str());
+        u8g2.setDrawColor(1); // Terug naar normaal
+    }
 
     // --- 3. Onderste balk: Zon-tijden & Temperatuur ---
     u8g2.setFont(u8g2_font_spleen6x12_mr);
     u8g2.drawStr(0, ALIGN_BOTTOM, sunriseStr.c_str());
-
-    // We plaatsen de temperatuur in het midden onderaan
-    u8g2.drawStr(ALIGN_CENTER(weatherTempStr.c_str()), ALIGN_BOTTOM, weatherTempStr.c_str());
 
     u8g2.drawStr(ALIGN_RIGHT(sunsetStr.c_str()), ALIGN_BOTTOM, sunsetStr.c_str());
 

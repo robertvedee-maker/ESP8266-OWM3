@@ -10,6 +10,7 @@
 // Declaraties van de variabelen (worden gevuld door fetchWeather)
 extern String weatherTempStr;
 extern long currentWeatherIcon;
+extern String weatherAlertStr; // Nieuwe variabele voor de waarschuwing
 
 // Functies
 void fetchWeather();
