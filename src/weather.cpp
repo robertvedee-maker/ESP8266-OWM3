@@ -3,6 +3,7 @@
  */
 
 #include "weather.h"
+#include "helpers.h"
 #include "secret.h"
 #include <ArduinoJson.h>
 #include <ESP8266HTTPClient.h>
@@ -13,6 +14,9 @@
 String weatherTempStr = "--.-°C";
 long currentWeatherIcon = 104; // Standaard wolkje
 String weatherAlertStr = "Test Code Geel"; // Nieuwe variabele voor de waarschuwing (standaard leeg)
+
+extern double sunrise_local;
+extern double sunset_local;
 
 void fetchWeather()
 {
@@ -34,17 +38,17 @@ void fetchWeather()
         if (httpCode == HTTP_CODE_OK) {
             JsonDocument filter;
             filter["current"]["temp"] = true;
-            filter["current"]["weather"]["id"] = true;
+            filter["current"]["weather"][0]["id"] = true;
             filter["alerts"][0]["event"] = true; // Pak alleen de titel van de eerste waarschuwing
 
             JsonDocument doc;
             deserializeJson(doc, http.getStream(), DeserializationOption::Filter(filter));
 
             float temp = doc["current"]["temp"];
-            int weatherId = doc["current"]["weather"]["id"];
+            int weatherId = doc["current"]["weather"][0]["id"];
 
             weatherTempStr = String(temp, 1) + "°C";
-            currentWeatherIcon = mapWeatherIdToIcon(weatherId);
+            currentWeatherIcon = mapWeatherIdToIcon(weatherId); /// currentWeatherIcon = mapWeatherIdToIcon(weatherId, timeinfo);
 
             // Waarschuwing ophalen
             if (doc["alerts"].is<JsonArray>()) {
@@ -74,37 +78,120 @@ void fetchWeather()
     }
 }
 
-long mapWeatherIdToIcon(int id)
+// long mapWeatherIdToIcon(int id)
+// {
+//     if (id == 800)
+//         return 73; // Helder
+//     if (id >= 801 && id <= 802)
+//         return 34; // Wolken weinig
+//     if (id >= 803 && id <= 804)
+//         return 33; // Wolken veel
+//     if (id >= 701 && id <= 721)
+//         return 60; // Mist Nevel Smog
+//     if (id >= 731)
+//         return 57; // Stof Zand
+//     if (id >= 741 && id <= 762)
+//         return 63; // Vulkanisch As Zand Dust
+//     if (id == 781)
+//         return 88; // Tornado
+//     if (id >= 600 && id <= 622)
+//         return 54; // Sneeuw
+//     if (id == 500)
+//         return 45; // ligte regen
+//     if (id == 501)
+//         return 39; // matige regen
+//     if (id >= 502 && id <= 504)
+//         return 42; // zware regen
+//     if (id == 511)
+//         return 48; // IJzel
+//     if (id >= 520 && id <= 531)
+//         return 51; // Regen buien
+//     if (id >= 300 && id <= 321)
+//         return 36; // motregen
+//     if (id >= 200 && id <= 232)
+//         return 70; // Onweer
+//     return 102; // Default
+// }
+
+long mapWeatherIdToIcon(int id, struct tm* timeinfo)
 {
-    if (id == 800)
-        return 73; // Helder
-    if (id >= 801 && id <= 802)
-        return 34; // Wolken weinig
-    if (id >= 803 && id <= 804)
-        return 33; // Wolken veel
-    if (id >= 701 && id <= 721)
-        return 60; // Mist Nevel Smog
-    if (id >= 731)
-        return 57; // Stof Zand
-    if (id >= 741 && id <= 762)
-        return 63; // Vulkanisch As Zand Dust
-    if (id == 781)
-        return 88; // Tornado
-    if (id >= 600 && id <= 622)
-        return 54; // Sneeuw
-    if (id == 500)
-        return 45; // ligte regen
-    if (id == 501)
-        return 39; // matige regen
-    if (id >= 502 && id <= 504)
-        return 42; // zware regen
-    if (id == 511)
-        return 48; // IJzel
-    if (id >= 520 && id <= 531)
-        return 51; // Regen buien
-    if (id >= 300 && id <= 321)
-        return 36; // motregen
-    if (id >= 200 && id <= 232)
-        return 70; // Onweer
-    return 102; // Default
+    // Bereken het huidige uur in decimalen
+    float currentHour = timeinfo->tm_hour + (timeinfo->tm_min / 60.0);
+
+    // Is de zon momenteel op in Renkum?
+    bool isDay = (currentHour > sunrise_local && currentHour < sunset_local);
+
+    if (id >= 200 && id <= 232) { // Onweer
+        return isDay ? 71 : 72; // Bijv. 64=Onweer dag, 69=Onweer nacht
+    }
+
+    if (id >= 300 && id <= 321) { // Regenachtige dag
+        if (id == 300) { // Licht regem
+            return isDay ? 46 : 47;
+        }
+        if (id == 301) { // Matige regen 
+            return isDay ? 40 : 41;
+        }
+        if (id == 302) { // Zware regen 
+            return isDay ? 37 : 38;
+        }
+        return 51; // Zwaar bewolkt (vaak hetzelfde icoon voor dag/nacht)
+    }
+
+    if (id >= 500 && id <= 531) { // Regen
+        if (id == 500) { // Licht regem
+            return isDay ? 46 : 47;
+        }
+        if (id == 501) { // Matige regen 
+            return isDay ? 40 : 41;
+        }
+        if (id == 502) { // Zware regen 
+            return isDay ? 37 : 38;
+        }
+        if (id == 503 || id == 504) { // Zeer zware regen 
+            return isDay ? 43 : 44;
+        }
+        if (id == 511) { // IJzel
+            return isDay ? 49 : 50;
+        }
+        if (id >= 520 && id <= 522) { // Regen buien
+            return isDay ? 52 : 53;
+        }
+        return 51; // Zwaar bewolkt (vaak hetzelfde icoon voor dag/nacht)
+    }
+
+    if (id >= 600 && id <= 622) { // Sneeuw
+        if (id == 600 || id == 601) { // Lichte/moderate sneeuw
+            return isDay ? 55 : 56;
+        }
+        return 54; // Zware sneeuw (vaak hetzelfde icoon voor dag/nacht)
+    }
+
+    if (id >= 701 && id <= 781) { // Atmosferische verschijnselen
+        if (id >= 701 && id <= 721) { // Mist Nevel Smog
+            return isDay ? 61 : 62;
+        }
+        if (id == 731) { // Stof Zand
+            return isDay ? 58 : 59;
+        }
+        if (id >= 741 && id <= 762) { // Vulkanisch As Zand Dust
+            return isDay ? 64 : 65;
+        }
+        if (id == 781) { // Tornado
+            return 88;
+        }
+    }   
+
+    if (id == 800) { // Helder/Onbewolkt
+        return isDay ? 73 : 78; // 0 = Zon, 1 = Maan
+    }
+
+    if (id >= 801 && id <= 804) { // Bewolkt
+        if (id == 801 || id == 802) { // Licht bewolkt
+            return isDay ? 34 : 35; // Bijv. 2=Zon/Wolk, 3=Maan/Wolk
+        }
+        return 33; // Zwaar bewolkt (vaak hetzelfde icoon voor dag/nacht)
+    }
+
+    return 104; // Default wolkje
 }
