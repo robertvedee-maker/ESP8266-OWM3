@@ -9,7 +9,7 @@
 #include "secret.h"
 
 #include "daynight.h"
-#include "font_climacons.h"
+#include "climacons_14pt.h"
 #include "network_logic.h" // Volgorde is hier erg belangrijk. niet aanpassen!
 #include "weather.h"
 
