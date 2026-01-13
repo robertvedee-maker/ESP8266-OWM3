@@ -13,7 +13,7 @@
 // Definities van de variabelen
 String weatherTempStr = "--.-°C";
 long currentWeatherIcon = 104; // Standaard wolkje
-String weatherAlertStr = "Test Code Geel"; // Nieuwe variabele voor de waarschuwing (standaard leeg)
+String weatherAlertStr = "#### #### ####"; // Nieuwe variabele voor de waarschuwing (standaard leeg)
 
 extern double sunrise_local;
 extern double sunset_local;
@@ -46,12 +46,11 @@ void fetchWeather()
 
             float temp = doc["current"]["temp"];
             int weatherId = doc["current"]["weather"][0]["id"];
-            
+
             time_t now = time(nullptr);
             struct tm* timeinfo = localtime(&now);
 
-            weatherTempStr = String(temp, 1) + "°C";
-            // currentWeatherIcon = mapWeatherIdToIcon(weatherId); /// 
+            weatherTempStr = String(temp, 1);
             currentWeatherIcon = mapWeatherIdToIcon(weatherId, timeinfo);
 
             // Waarschuwing ophalen
@@ -82,41 +81,6 @@ void fetchWeather()
     }
 }
 
-// long mapWeatherIdToIcon(int id)
-// {
-//     if (id == 800)
-//         return 73; // Helder
-//     if (id >= 801 && id <= 802)
-//         return 34; // Wolken weinig
-//     if (id >= 803 && id <= 804)
-//         return 33; // Wolken veel
-//     if (id >= 701 && id <= 721)
-//         return 60; // Mist Nevel Smog
-//     if (id >= 731)
-//         return 57; // Stof Zand
-//     if (id >= 741 && id <= 762)
-//         return 63; // Vulkanisch As Zand Dust
-//     if (id == 781)
-//         return 88; // Tornado
-//     if (id >= 600 && id <= 622)
-//         return 54; // Sneeuw
-//     if (id == 500)
-//         return 45; // ligte regen
-//     if (id == 501)
-//         return 39; // matige regen
-//     if (id >= 502 && id <= 504)
-//         return 42; // zware regen
-//     if (id == 511)
-//         return 48; // IJzel
-//     if (id >= 520 && id <= 531)
-//         return 51; // Regen buien
-//     if (id >= 300 && id <= 321)
-//         return 36; // motregen
-//     if (id >= 200 && id <= 232)
-//         return 70; // Onweer
-//     return 102; // Default
-// }
-
 long mapWeatherIdToIcon(int id, struct tm* timeinfo)
 {
     // Bereken het huidige uur in decimalen
@@ -133,10 +97,10 @@ long mapWeatherIdToIcon(int id, struct tm* timeinfo)
         if (id == 300) { // Licht regem
             return isDay ? 46 : 47;
         }
-        if (id == 301) { // Matige regen 
+        if (id == 301) { // Matige regen
             return isDay ? 40 : 41;
         }
-        if (id == 302) { // Zware regen 
+        if (id == 302) { // Zware regen
             return isDay ? 37 : 38;
         }
         return 51; // Zwaar bewolkt (vaak hetzelfde icoon voor dag/nacht)
@@ -146,13 +110,13 @@ long mapWeatherIdToIcon(int id, struct tm* timeinfo)
         if (id == 500) { // Licht regem
             return isDay ? 46 : 47;
         }
-        if (id == 501) { // Matige regen 
+        if (id == 501) { // Matige regen
             return isDay ? 40 : 41;
         }
-        if (id == 502) { // Zware regen 
+        if (id == 502) { // Zware regen
             return isDay ? 37 : 38;
         }
-        if (id == 503 || id == 504) { // Zeer zware regen 
+        if (id == 503 || id == 504) { // Zeer zware regen
             return isDay ? 43 : 44;
         }
         if (id == 511) { // IJzel
@@ -184,7 +148,7 @@ long mapWeatherIdToIcon(int id, struct tm* timeinfo)
         if (id == 781) { // Tornado
             return 88;
         }
-    }   
+    }
 
     if (id == 800) { // Helder/Onbewolkt
         return isDay ? 73 : 78; // 0 = Zon, 1 = Maan

@@ -35,10 +35,10 @@ void toonNetwerkInfo()
         // ... je code voor het informatiescherm ...
         u8g2.clearBuffer();
         u8g2.drawRFrame(0, 0, LCDWidth, LCDHeight, 5);
-        u8g2.setFont(u8g2_font_spleen6x12_mr);
+        u8g2.setFont(u8g2_font_helvR08_tf);
         u8g2.drawStr(ALIGN_CENTER("SYSTEEM START"), 15, "SYSTEEM START");
 
-        u8g2.setFont(u8g2_font_spleen5x8_mf);
+        u8g2.setFont(u8g2_font_helvR08_tf);
         u8g2.setCursor(12, 35);
         u8g2.print("IP:   " + WiFi.localIP().toString());
         u8g2.setCursor(12, 48);
@@ -57,7 +57,7 @@ void setupWiFi(const char* ssid, const char* password)
     WiFi.begin(ssid, password);
 
     unsigned long startAttemptTime = millis();
-    u8g2.setFont(u8g2_font_spleen5x8_mf);
+    u8g2.setFont(u8g2_font_helvR08_tf);
 
     while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 15000) {
         const char* Msg = "WiFi Verbinden...";
@@ -79,7 +79,7 @@ void setupOTA(const char* hostname)
     ArduinoOTA.onStart([]() {
         const char* Msg = "OTA Update Start...";
         u8g2.clearBuffer();
-        u8g2.setFont(u8g2_font_spleen6x12_mr);
+        u8g2.setFont(u8g2_font_helvR08_tf);
         u8g2.drawRFrame(0, 0, LCDWidth, LCDHeight, 5);
         u8g2.drawStr(ALIGN_CENTER(Msg), ALIGN_V_CENTER, Msg);
         u8g2.sendBuffer();
