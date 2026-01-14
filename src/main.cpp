@@ -31,6 +31,9 @@ void drawDisplay(struct tm* timeInfo, time_t now);
 unsigned long lastBrightnessCheck = 0;
 const unsigned long brightnessInterval = 60000; // 1 minuut
 
+/*
+ *  S E T U P
+ */
 void setup(void)
 {
     // 1. Hardware basis
@@ -131,18 +134,20 @@ void drawDisplay(struct tm* timeInfo, time_t now)
     u8g2.setFont(u8g2_font_helvR08_tf); // Switch terug naar tekst-font
     u8g2.drawStr(ALIGN_RIGHT(currentDateStr.c_str()), 10, currentDateStr.c_str());
 
-    // We plaatsen de temperatuur in het midden onderaan
-    u8g2.setFont(u8g2_font_helvB18_tf);
-    u8g2.enableUTF8Print();
-
-    u8g2.drawStr(50, 50, weatherTempStr.c_str());
+    // --- Temperatuur naast Weericoon ---
+    u8g2.setFont(u8g2_font_helvB24_tf);
+    // u8g2.enableUTF8Print();
+    u8g2.setCursor(40, 52);
+    u8g2.print(weatherTempStr.c_str());
+    u8g2.print("°C");
+    // u8g2.drawStr(50, 50, weatherTempStr.c_str());
 
     // --- Huidige Weericoon linksboven ---
     u8g2.setFont(font_climacons_24pt); // Weer-iconen font
     u8g2.drawGlyph(1, 50, currentWeatherIcon); // HET WEER ICOON
 
     // --- 2. Midden: De Grote Tijd ---
-    u8g2.setFont(u8g2_font_helvR24_tf);
+    u8g2.setFont(u8g2_font_helvR18_tf);
     u8g2.drawStr(ALIGN_CENTER(currentTimeStr.c_str()), 100, currentTimeStr.c_str());
 
     // --- Eventuele weerwaarschuwing ---
